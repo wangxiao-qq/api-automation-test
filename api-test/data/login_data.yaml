@@ -1,0 +1,31 @@
+# data/login_data.yaml
+# 测试数据文件
+# YAML 格式类似 Python 字典，用缩进表示层级
+
+# 登录成功用例
+login_success:
+  username: "admin"
+  password: "admin123"
+  expect_code: 0
+  expect_message: "登录成功"
+
+# 密码错误
+login_wrong_password:
+  username: "admin"
+  password: "wrong"
+  expect_code: 400
+  expect_message: "用户名或密码错误"
+
+# 用户名为空
+login_no_username:
+  username: ""
+  password: "admin123"
+  expect_code: 400
+  expect_message: "用户名不能为空"
+
+# 密码为空
+login_no_password:
+  username: "admin"
+  password: ""
+  expect_code: 400
+  expect_message: "密码不能为空"

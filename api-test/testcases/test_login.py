@@ -1,68 +1,38 @@
-# testcases/test_login_data_driven.py
-# 演示数据驱动
+# testcases/test_login.py
+# 登录接口测试：YAML 数据驱动 + pytest 参数化
 
 import pytest
-import requests
+
+from api.login_api import login
 from utils.data_util import read_yaml
 
-# 读取测试数据
-# read_yaml() 返回一个字典，其中包含所有测试数据
-# login_data = read_yaml("login_data.yaml")
-#
-#
-# def test_login_success():
-#     """测试登录成功——直接读取 YAML 中的数据"""
-#
-#     # 从读到的数据中取出"登录成功"这组数据
-#     case = login_data["login_success"]
-#
-#     response = requests.post(
-#         "http://localhost:3000/api/login",
-#         json={
-#             "username": case["username"],
-#             "password": case["password"]
-#         }
-#     )
-#     resp_data = response.json()
-#
-#     # 期望值也写在 YAML 里了
-#     assert resp_data["code"] == case["expect_code"]
-#     assert resp_data["message"] == case["expect_message"]
+# 从 YAML 读取测试数据
+# 每个 key 是一组用例，字段：username / password / expect_code / expect_message
+login_data = read_yaml("login_data.yaml")
 
-
-# ★ 更高级的用法：用 @pytest.mark.parametrize 实现参数化
-# 一组数据跑一次用例，而不是每个场景写一个函数
-
-# 先准备好参数化数据
-# 列表里的每个元组，都是一组测试数据
+# 把 YAML 字典转成参数化需要的列表：
+# [ (用例名, 用户名, 密码, 期望状态码, 期望消息), ... ]
 parametrize_data = [
-    # (用户名,    密码,        期望状态码, 期望消息)
-    ("admin", "admin123", 0, "登录成功"),
-    ("admin", "wrong", 400, "用户名或密码错误"),
-    ("", "admin123", 400, "用户名不能为空"),
-    ("admin", "", 400, "密码不能为空"),
+    (
+        case_name,
+        case["username"],
+        case["password"],
+        case["expect_code"],
+        case["expect_message"],
+    )
+    for case_name, case in login_data.items()
 ]
 
 
-# @pytest.mark.parametrize 是 pytest 的参数化装饰器
-# 格式：(参数名1, 参数名2, ...), [ (值1, 值2), (值1, 值2), ... ]
 # 有多少组数据，这个用例就跑多少遍
 @pytest.mark.parametrize(
-    "username, password, expect_code, expect_message",
-    parametrize_data
+    "case_name, username, password, expect_code, expect_message",
+    parametrize_data,
+    ids=[case[0] for case in parametrize_data],  # 用 YAML 里的用例名作为测试 ID
 )
-def test_login_parametrize(username, password, expect_code, expect_message):
-    """
-    参数化测试登录接口
-    一组数据跑一遍这个函数，总共跑4遍
-    """
-    response = requests.post(
-        "http://localhost:3000/api/login",
-        json={
-            "username": username,
-            "password": password
-        }
-    )
+def test_login(case_name, username, password, expect_code, expect_message):
+    """登录接口参数化测试：一组数据对应一条用例"""
+    response = login(username, password)
     resp_data = response.json()
 
     assert resp_data["code"] == expect_code

@@ -1,14 +1,15 @@
+# testcases/test_timeout.py
+# 超时场景：模拟接口延迟，验证 requests 会抛出 Timeout 异常
+
 import pytest
-from api.errror_api import simulate_timeout
-from utils.requests_util import request_util
 import requests
 
+from api.error_api import simulate_timeout
 
-# 先登录 (这个接口需要token)
+
 class TestTimeout:
     @pytest.mark.usefixtures("login_setup")
     def test_timeout(self):
-        response = request_util.get("/api/error/timeout")
-        """验证接口超时"""
+        """接口响应时间超过 timeout 时，应抛出 requests.exceptions.Timeout"""
         with pytest.raises(requests.exceptions.Timeout):
             simulate_timeout(delay=15)

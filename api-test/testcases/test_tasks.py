@@ -1,9 +1,15 @@
-# testcases/test_tasks_advanced.py
-# 使用封装的断言
+# testcases/test_tasks.py
+# 任务管理接口测试：使用封装的断言，验证正向流程与异常分支
 
 import pytest
-from utils.assert_util import assert_success, assert_field_equal, assert_status_code
-from api.tasks_api import get_tasks, create_task, get_task_detail,batch_delete_tasks
+
+from api.tasks_api import (
+    batch_delete_tasks,
+    create_task,
+    get_task_detail,
+    get_tasks,
+)
+from utils.assert_util import assert_field_equal, assert_status_code, assert_success
 
 
 @pytest.mark.usefixtures("login_setup")
@@ -60,7 +66,5 @@ class TestTasksAdvanced:
         assert "成功删除 2 个任务" in resp_delete.json()["message"]
 
         # 4. 验证：再去查这两个任务，应该返回 404
-        from api.tasks_api import get_task_detail
-        from utils.assert_util import assert_status_code
         assert_status_code(get_task_detail(task_id_a), 404)
         assert_status_code(get_task_detail(task_id_b), 404)

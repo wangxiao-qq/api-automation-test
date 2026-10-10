@@ -3,7 +3,7 @@
  * 接口自动化学习练手项目
  *
  * 功能：用户管理、任务 CRUD、分类管理、文件上传
- * 端口：3000
+ * 端口：默认 3000，可用环境变量 PORT 覆盖
  */
 
 const express = require('express');
@@ -13,8 +13,10 @@ const multer = require('multer');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
-const SECRET_KEY = 'api-auto-study-2024';
+
+// 端口与 JWT 密钥：优先读环境变量，未配置时使用默认值，保证 clone 后可直接启动
+const PORT = process.env.PORT || 3000;
+const SECRET_KEY = process.env.JWT_SECRET || 'api-auto-study-2024';
 
 // ===================== 中间件 =====================
 app.use(cors());
@@ -22,6 +24,8 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ===================== 模拟数据库（存在内存中） =====================
+// 说明：以下是练习用的演示账号，与测试用例中的登录数据保持一致，
+//      密码明文存储仅为方便测试；真实系统的密码必须加盐哈希后存储
 let users = [
   { id: 1, username: 'admin', password: 'admin123', role: 'admin', nickname: '管理员' },
   { id: 2, username: 'tester', password: 'tester123', role: 'tester', nickname: '测试员' },

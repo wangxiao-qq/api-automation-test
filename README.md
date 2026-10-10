@@ -77,7 +77,23 @@ pytest testcases/test_login.py
 pytest testcases/test_login.py -k login_success
 ```
 
-### 4. 生成 Allure 报告
+### 4. 环境变量（可选）
+
+框架与被测服务的关键配置都支持用环境变量覆盖，默认值指向本地 3000 端口，不配置也能直接跑。
+
+| 变量 | 作用 | 默认值 |
+|------|------|--------|
+| `API_BASE_URL` | 测试框架要访问的服务地址 | `http://localhost:3000` |
+| `PORT` | 被测服务监听端口 | `3000` |
+| `JWT_SECRET` | 被测服务的 JWT 签名密钥 | `api-auto-study-2024` |
+
+```bash
+# 例如把被测服务跑在 3001 端口
+set PORT=3001
+set API_BASE_URL=http://localhost:3001
+```
+
+### 5. 生成 Allure 报告
 
 ```bash
 # 安装 Python 插件

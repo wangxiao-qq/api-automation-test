@@ -6,6 +6,10 @@
 > - 📖 知识点讲解
 > - 💻 动手练习（含代码和逐行解释）
 > - 🎤 面试官会问的问题
+>
+> **版本说明（2026-10-18）**：本指南按"从零搭建"的教学顺序展开，标注 **【教学中间版】** 的代码是这一步的简化版、后面会被改造；标注 **【仓库最终版】** 的代码块已与仓库实际文件逐条核对。**一切以仓库代码为准**。
+>
+> 实测（先启动 `api-server`，在 `api-test/` 下运行 `python -m pytest -q`）：**19 passed in 10.33s**。
 
 ---
 
@@ -22,7 +26,7 @@
 ### 启动项目 API 服务器
 
 ```bash
-cd C:\Users\xiaow\api-auto-project\api-server
+cd C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project\api-server
 npm start
 ```
 
@@ -33,6 +37,15 @@ npm start
 ```
 
 > **小知识**：`http://localhost:3000` 中的 `localhost` 代表本机，`3000` 是端口号。API 服务器的地址就是 `http://localhost:3000`，后面加上具体接口路径，比如登录接口就是 `http://localhost:3000/api/login`
+
+> **端口可配置**：服务端读 `PORT` 环境变量，测试框架读 `API_BASE_URL`，JWT 密钥读 `JWT_SECRET`，默认值都是本地 3000 端口。两者要一起改：
+>
+> ```bash
+> set PORT=3001
+> set API_BASE_URL=http://localhost:3001
+> ```
+>
+> `npm start` 等价于 `node server.js`（见 `api-server/package.json` 的 `scripts.start`）。
 
 ---
 
@@ -52,6 +65,7 @@ npm start
 | 删除任务 | DELETE | /api/tasks/:id | ✅ |
 | 批量删除 | POST | /api/tasks/batch | ✅ |
 | 获取分类 | GET | /api/categories | ❌ |
+| 创建分类 | POST | /api/categories | ❌ |
 | 上传文件 | POST | /api/upload | ✅ |
 | 模拟超时 | POST | /api/error/timeout | ✅ |
 | 服务器错误 | GET | /api/error/server-error | ❌ |
@@ -90,7 +104,7 @@ npm start
 
 - **requests**：发送 HTTP 请求的库（发请求、收响应）
 - **pytest**：运行测试用例的框架（组织用例、生成报告）
-- **pytest-html** 或 **allure-pytest**：生成漂亮的测试报告
+- **allure-pytest**：生成漂亮的测试报告（项目最终用的是 Allure，见 Day 6）
 
 ---
 
@@ -98,7 +112,7 @@ npm start
 
 ### 1. 创建项目目录结构
 
-在 `C:\Users\xiaow\api-auto-project\` 下创建：
+在 `C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project\` 下创建：
 
 ```
 api-auto-project/
@@ -112,7 +126,7 @@ api-auto-project/
 先创建目录：
 
 ```bash
-cd C:\Users\xiaow\api-auto-project
+cd C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project
 mkdir api-test
 cd api-test
 mkdir testcases
@@ -122,12 +136,16 @@ mkdir testcases
 
 在 `api-test` 目录下创建一个 `requirements.txt` 文件，内容如下：
 
+项目根目录的 `requirements.txt`（仓库里已经建好，不需要在 `api-test/` 下另建）实际内容：
+
 ```
-requests==2.31.0
-pytest==8.0.0
-pytest-html==4.1.1
-pyyaml==6.0
+requests>=2.31.0
+pytest>=8.0.0
+PyYAML>=6.0
+allure-pytest>=2.13.0
 ```
+
+> 版本用 `>=` 而不是 `==`：练习项目不锁死小版本，避免换机器时因版本过旧装不上。生产项目通常锁 `==` 保证环境一致——两种策略都可以，面试时能说清取舍即可。
 
 然后安装：
 
@@ -182,7 +200,7 @@ print("返回数据:", response.json())
 运行这个脚本：
 
 ```bash
-cd C:\Users\xiaow\api-auto-project\api-test
+cd C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project\api-test
 python first_request.py
 ```
 
@@ -301,7 +319,7 @@ pytest 是 Python 最流行的测试框架，用来：
 
 ### 1. 创建测试文件
 
-在 `api-test/testcases/` 下创建 `test_login.py`：
+在 `api-test/testcases/` 下创建 `test_login.py`（**【教学中间版】**，Day 4 会改造成 YAML 数据驱动）：
 
 ```python
 # testcases/test_login.py
@@ -381,7 +399,7 @@ def test_login_no_username():
 打开终端，在 `api-test` 目录下运行：
 
 ```bash
-cd C:\Users\xiaow\api-auto-project\api-test
+cd C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project\api-test
 python -m pytest testcases/test_login.py -v
 ```
 
@@ -411,7 +429,7 @@ testcases/test_login.py::test_login_no_username PASSED                  [100%]
 python -m pytest testcases/test_login.py -v --html=report.html
 ```
 
-> `--html=report.html` 会生成一个漂亮的 HTML 报告文件，在浏览器中打开 `report.html` 就能看到详细的测试结果。
+> `--html=report.html` 需要先装 `pytest-html`，它**不在项目 `requirements.txt` 里**（想试这条命令就 `pip install pytest-html`）。项目最终用的是 Allure 报告，见 Day 6。
 
 ---
 
@@ -471,7 +489,9 @@ fixture 是 pytest 的"预处理机制"，可以理解为：
 
 ## 💻 动手：用 fixture 统一管理 token
 
-### 1. 创建 conftest.py
+### 1. 创建 conftest.py（【教学中间版】）
+
+> 这一步先手写 `get_token` fixture，把"登录一次、全程复用"的思路跑通；Day 4 引入分层封装后，它会改成调用 `api/login_api.py` 的 `login_setup`，那才是仓库最终版。
 
 在 `api-test` 目录下创建 `conftest.py`：
 
@@ -522,9 +542,9 @@ def get_token():
 > - `yield token` → 把 token 返回给测试用例使用。`yield` 和 `return` 的区别是：`yield` 之后还可以继续执行清理代码
 > - 测试用例引用 fixture 时，只需要在参数中写上 fixture 的名字就行
 
-### 2. 使用 fixture 的测试用例
+### 2. 使用 fixture 的测试用例（【教学中间版】）
 
-在 `testcases/` 下创建 `test_tasks_with_fixture.py`：
+在 `testcases/` 下创建 `test_tasks_with_fixture.py`（**【教学中间版】**，仅用于演示 fixture，最终仓库里没有这个文件；它的职责后来由 `api/` 层 + `login_setup` 承担）：
 
 ```python
 # testcases/test_tasks_with_fixture.py
@@ -591,7 +611,7 @@ def test_create_task(get_token):
 运行测试：
 
 ```bash
-cd C:\Users\xiaow\api-auto-project\api-test
+cd C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project\api-test
 python -m pytest testcases/test_tasks_with_fixture.py -v -s
 ```
 
@@ -725,13 +745,20 @@ api-test/
 
 ### 第一步：工具层——封装请求工具
 
+**【仓库最终版】** `utils/requests_util.py`：
+
 ```python
 # utils/requests_util.py
 # 工具层：封装通用的请求方法
 # 所有测试用例都通过这个工具发请求
-# 统一处理：URL拼接、超时、异常等
+# 统一处理：URL 拼接、超时、鉴权头、异常等
+
+import os
 
 import requests
+
+# 被测服务地址：优先读环境变量 API_BASE_URL，默认本地 3000 端口
+BASE_URL = os.getenv("API_BASE_URL", "http://localhost:3000")
 
 
 class RequestsUtil:
@@ -740,92 +767,80 @@ class RequestsUtil:
     封装了 GET、POST、PUT、DELETE 等方法
     统一添加 base_url 和超时时间
     """
-    
-    def __init__(self):
-        # base_url 是接口地址的基础部分
-        # 所有请求都用这个前缀，不用每个接口都写 http://localhost:3000
-        self.base_url = "http://localhost:3000"
-        
-        # 默认请求头
+
+    def __init__(self, base_url=BASE_URL, timeout=10):
+        self.base_url = base_url              # 被测服务地址
         self.headers = {
             "Content-Type": "application/json"
         }
-        
-        # 默认超时时间（秒）
-        # 如果接口响应超过这个时间，会报超时异常
-        self.timeout = 10
-    
+        self.timeout = timeout                # 超过这个时间抛超时异常
+
     def set_token(self, token):
-        """
-        设置认证 token
-        调用这个方法后，后续所有请求都会自动带上 token
-        """
+        """设置认证 token，之后所有请求自动带上 Authorization"""
         self.headers["Authorization"] = "Bearer " + token
-    
-    def get(self, path, params=None):
-        """
-        发送 GET 请求
-        path: 接口路径，如 /api/tasks
-        params: URL 查询参数，如 {"page": 1}
-        """
-        url = self.base_url + path
-        response = requests.get(
-            url=url,
+
+    def get(self, url, params=None):
+        return requests.get(
+            url=self.base_url + url,
             headers=self.headers,
             params=params,
             timeout=self.timeout
         )
-        return response
-    
-    def post(self, path, json_data=None):
+
+    def post(self, url, json=None):
+        return requests.post(
+            url=self.base_url + url,
+            headers=self.headers,
+            json=json,
+            timeout=self.timeout
+        )
+
+    def put(self, url, json=None):
+        return requests.put(
+            url=self.base_url + url,
+            headers=self.headers,
+            json=json,
+            timeout=self.timeout
+        )
+
+    def delete(self, url):
+        return requests.delete(
+            url=self.base_url + url,
+            headers=self.headers,
+            timeout=self.timeout
+        )
+
+    def upload(self, url, files=None, data=None):
+        """文件上传：复制请求头并去掉 Content-Type
+
+        不能带 application/json，否则 requests 不会自动生成
+        multipart/form-data 的边界（boundary），服务端解析不了文件
         """
-        发送 POST 请求
-        path: 接口路径
-        json_data: 请求体数据（会自动转成 JSON）
-        """
-        url = self.base_url + path
-        response = requests.post(
-            url=url,
-            headers=self.headers,
-            json=json_data,
+        upload_headers = self.headers.copy()
+        upload_headers.pop("Content-Type", None)
+
+        return requests.post(
+            url=self.base_url + url,
+            headers=upload_headers,
+            files=files,
+            data=data,
             timeout=self.timeout
         )
-        return response
-    
-    def put(self, path, json_data=None):
-        """发送 PUT 请求"""
-        url = self.base_url + path
-        response = requests.put(
-            url=url,
-            headers=self.headers,
-            json=json_data,
-            timeout=self.timeout
-        )
-        return response
-    
-    def delete(self, path):
-        """发送 DELETE 请求"""
-        url = self.base_url + path
-        response = requests.delete(
-            url=url,
-            headers=self.headers,
-            timeout=self.timeout
-        )
-        return response
 
 
-# 创建一个全局的请求工具实例
-# 这样其他地方只需要 import 这个实例就能用
+# 全局请求工具实例：其他地方 import 这个实例就能用
 request_util = RequestsUtil()
 ```
 
 > **逐行解释**：
-> - `class RequestsUtil:` → 定义一个类，类就像是一个模板，可以创建"对象"
-> - `def __init__(self):` → 初始化方法，创建对象时自动调用。`self` 代表对象自己
-> - `self.base_url` → 对象的属性，所有方法共享这个值
-> - `self.headers` → 对象的请求头，`set_token` 方法就是往这个字典里添加 token
-> - `def get(self, path, params=None):` → 封装 GET 请求。`params=None` 表示可以不传这个参数
-> - `request_util = RequestsUtil()` → 创建一个全局可用的工具实例，一行代码就能用
+> - `BASE_URL = os.getenv("API_BASE_URL", ...)` → 配置与代码分离：换环境只改环境变量，不改代码
+> - `def __init__(self, base_url=BASE_URL, timeout=10):` → 默认值来自环境变量；测试里也可以 `RequestsUtil(base_url=...)` 临时指定（`test_exception.py` 就靠这个创建"不带 token"的独立实例）
+> - `self.headers` → 对象的请求头，`set_token` 往这个字典里添加 `Authorization`
+> - 每个方法统一 `url=self.base_url + url` + `timeout=self.timeout`，用例层永远不关心地址和超时
+> - `upload()` → 单独处理文件上传：去掉 `Content-Type`，让 requests 自己生成 multipart 边界
+> - `request_util = RequestsUtil()` → 全局实例，`api/` 层直接 import 使用
+
+> 【教学中间版 → 最终版】的变化：`base_url` 从硬编码改为环境变量；参数名 `path`/`json_data` 改为 `url`/`json`（与 requests 保持一致）；新增 `upload()`；`__init__` 支持自定义 `base_url` 和 `timeout`。
 
 ### 第二步：接口层——封装每个接口
 
@@ -854,14 +869,14 @@ def login(username, password):
     
     # 调用工具层发 POST 请求
     # 路径 /api/login 会拼上 base_url 变成 http://localhost:3000/api/login
-    response = request_util.post("/api/login", json_data=data)
+    response = request_util.post("/api/login", json=data)
     
     # ★ 如果登录成功，自动把 token 设置到工具类中
     # 这样后面调其他接口时就不用手动传 token 了
     if response.status_code == 200 and response.json().get("code") == 0:
         token = response.json()["data"]["token"]
         request_util.set_token(token)
-        print(f"\n[login_api] 登录成功，token 已自动设置")
+        print("\n[login_api] 登录成功，token 已自动设置")
     
     return response
 
@@ -873,7 +888,7 @@ def register(username, password, nickname):
         "password": password,
         "nickname": nickname
     }
-    response = request_util.post("/api/user/register", json_data=data)
+    response = request_util.post("/api/user/register", json=data)
     return response
 ```
 
@@ -883,47 +898,48 @@ def register(username, password, nickname):
 
 from utils.requests_util import request_util
 
-
 def get_tasks(params=None):
-    """
-    获取任务列表
+    """获取任务列表
     params: 可选参数，如 {"status": "done", "page": 1}
     """
-    response = request_util.get("/api/tasks", params=params)
+    response = request_util.get(url=f"/api/tasks", params=params)
     return response
-
 
 def get_task_detail(task_id):
     """获取任务详情"""
-    response = request_util.get(f"/api/tasks/{task_id}")
+    response = request_util.get(url=f"/api/tasks/{task_id}")
     return response
 
-
-def create_task(title, description="", priority="medium", status="todo"):
+def create_task(title, description="", status="todo", priority="medium"):
     """创建任务"""
     data = {
         "title": title,
         "description": description,
-        "priority": priority,
-        "status": status
+        "status": status,
+        "priority": priority
     }
-    response = request_util.post("/api/tasks", json_data=data)
+    response = request_util.post(url=f"/api/tasks", json=data)
     return response
 
-
-def update_task(task_id, update_data):
+def update_task(task_id, update_data=None):
     """更新任务"""
-    response = request_util.put(f"/api/tasks/{task_id}", json_data=update_data)
+    response = request_util.put(url=f"/api/tasks/{task_id}", json=update_data)
     return response
-
 
 def delete_task(task_id):
     """删除任务"""
-    response = request_util.delete(f"/api/tasks/{task_id}")
+    response = request_util.delete(url=f"/api/tasks/{task_id}")
+    return response
+
+def batch_delete_tasks(task_ids):
+    """批量删除任务
+    task_ids: 任务ID列表，如 [1, 2, 3]
+    """
+    response = request_util.post(url=f"/api/tasks/batch", json={"ids": task_ids})
     return response
 ```
 
-### 第三步：改造 conftest.py（使用封装后的工具）
+### 第三步：改造 conftest.py（使用封装后的工具）【仓库最终版】
 
 ```python
 # conftest.py
@@ -932,112 +948,103 @@ def delete_task(task_id):
 import pytest
 from api.login_api import login
 
-
 @pytest.fixture(scope="session")
 def login_setup():
     """
     登录 fixture
     使用封装好的 login 函数，代码更简洁
+    登录 fixture，所有测试用例共享一次登录
     """
     # 调用 api 层的登录接口
     response = login("admin", "admin123")
-    
+
     # 断言登录成功
     assert response.status_code == 200
     assert response.json()["code"] == 0
-    
+
     print("\n[conftest] 登录设置完成")
     yield
     print("\n[conftest] 测试全部结束")
 ```
 
+> `login()` 成功时会自动 `request_util.set_token(token)`，所以这个 session 级 fixture **不返回 token**，后续用例共用同一个全局实例，请求会自动带鉴权头。
+
 ### 第四步：改造测试用例层（简洁多了！）
+
+**【仓库最终版】** `testcases/test_tasks.py`：
 
 ```python
 # testcases/test_tasks.py
-# 用例层：测试任务相关接口
-# 只关注"测什么"和"断言什么"
+# 任务管理接口测试：使用封装的断言，验证正向流程与异常分支
 
 import pytest
-from api.tasks_api import get_tasks, create_task, get_task_detail, update_task, delete_task
+
+from api.tasks_api import (
+    batch_delete_tasks,
+    create_task,
+    get_task_detail,
+    get_tasks,
+)
+from utils.assert_util import assert_field_equal, assert_status_code, assert_success
 
 
-# class 可以把同一类测试组织在一起
-# class 名必须以 Test 开头
-class TestTasks:
-    
-    # ★ 在类中使用 fixture 的方法
-    # 用 @pytest.mark.usefixtures 声明这个类需要 login_setup
-    # 这样类里的每个测试用例运行前都会先执行登录
-    @pytest.mark.usefixtures("login_setup")
-    class TestWithLogin:
-        
-        def test_get_tasks(self):
-            """测试获取任务列表"""
-            response = get_tasks()
-            resp_data = response.json()
-            
-            assert response.status_code == 200
-            assert resp_data["code"] == 0
-            assert len(resp_data["data"]["list"]) > 0
-        
-        def test_get_tasks_with_filter(self):
-            """测试按状态筛选任务"""
-            params = {"status": "done"}
-            response = get_tasks(params=params)
-            resp_data = response.json()
-            
-            assert response.status_code == 200
-            # 验证所有返回的任务 status 都是 "done"
-            for task in resp_data["data"]["list"]:
-                assert task["status"] == "done"
-        
-        def test_create_and_get_task(self):
-            """测试创建任务后能获取到"""
-            # 第一步：创建任务
-            create_response = create_task(
-                title="pytest 创建的任务",
-                description="通过自动化创建的",
-                priority="high"
-            )
-            create_data = create_response.json()
-            
-            assert create_response.status_code == 200
-            assert create_data["code"] == 0
-            
-            # 获取新创建的任务 ID
-            task_id = create_data["data"]["id"]
-            
-            # 第二步：通过 ID 获取任务详情
-            detail_response = get_task_detail(task_id)
-            detail_data = detail_response.json()
-            
-            assert detail_response.status_code == 200
-            assert detail_data["data"]["title"] == "pytest 创建的任务"
-        
-        def test_delete_task(self):
-            """测试删除任务"""
-            # 先创建一个任务（用于删除）
-            create_response = create_task(title="待删除的任务")
-            task_id = create_response.json()["data"]["id"]
-            
-            # 删除它
-            delete_response = delete_task(task_id)
-            delete_data = delete_response.json()
-            
-            assert delete_response.status_code == 200
-            assert delete_data["code"] == 0
-            assert delete_data["message"] == "删除成功"
-            
-            # 验证已被删除
-            detail_response = get_task_detail(task_id)
-            assert detail_response.status_code == 404
+@pytest.mark.usefixtures("login_setup")
+class TestTasksAdvanced:
+
+    def test_get_tasks(self):
+        """用封装的断言来写"""
+        response = get_tasks()
+
+        # 一行断言代替 3 行
+        assert_success(response)
+
+        # 验证返回数据的结构
+        resp_data = response.json()
+        assert isinstance(resp_data["data"]["list"], list), "list 应该是一个列表"
+        assert isinstance(resp_data["data"]["total"], int), "total 应该是一个整数"
+
+    def test_create_task_with_assert(self):
+        """创建任务并使用字段断言"""
+        response = create_task(title="测试断言封装", priority="high")
+
+        assert_success(response)
+
+        assert_field_equal(response, "data.title", "测试断言封装")
+        assert_field_equal(response, "data.priority", "high")
+        assert_field_equal(response, "data.status", "todo")
+
+    def test_task_not_found(self):
+        """测试查询不存在的任务"""
+        response = get_task_detail(99999)
+        assert_status_code(response, 404)
+
+    def test_batch_delete_tasks(self):
+        """先创建两个任务，再批量删除它们"""
+        # 1. 创建任务 A
+        resp_a = create_task(title="待批量删除-A")
+        assert_success(resp_a)
+        task_id_a = resp_a.json()["data"]["id"]
+
+        # 2. 创建任务 B
+        resp_b = create_task(title="待批量删除-B")
+        assert_success(resp_b)
+        task_id_b = resp_b.json()["data"]["id"]
+
+        # 3. 批量删除这两个任务
+        resp_delete = batch_delete_tasks([task_id_a, task_id_b])
+        assert_success(resp_delete)
+        assert "成功删除 2 个任务" in resp_delete.json()["message"]
+
+        # 4. 验证：再去查这两个任务，应该返回 404
+        assert_status_code(get_task_detail(task_id_a), 404)
+        assert_status_code(get_task_detail(task_id_b), 404)
 ```
 
 > **代码解释——类的使用**：
-> - `class TestTasks:` → 把多个相关的测试函数组织在一起
-> - `@pytest.mark.usefixtures("login_setup")` → 类级别的 fixture 声明，类里所有测试都共享这个 fixture
+> - `class TestTasksAdvanced:` → 把多个相关的测试函数组织在一起（类名必须 `Test` 开头）
+> - `@pytest.mark.usefixtures("login_setup")` → 类级别的 fixture 声明，类里所有测试都共享这次登录
 > - `self` → 类中方法的第一个参数，代表类的实例
+> - **接口关联**：`test_batch_delete_tasks` 里先创建任务拿到 ID，再用 ID 去批量删除、查询详情——这就是"A 接口返回值作为 B 接口入参"的完整例子
 
 ### 第五步：数据驱动——用 YAML 文件管理测试数据
 
@@ -1068,7 +1075,16 @@ login_no_username:
   password: "admin123"
   expect_code: 400
   expect_message: "用户名不能为空"
+
+# 密码为空
+login_no_password:
+  username: "admin"
+  password: ""
+  expect_code: 400
+  expect_message: "密码不能为空"
 ```
+
+> 仓库里的 `data/login_data.yaml` 就是这 **4 条**：登录成功、密码错误、用户名为空、密码为空。
 
 创建读取 YAML 的工具：
 
@@ -1103,86 +1119,56 @@ def read_yaml(file_name):
     return data
 ```
 
-使用数据驱动的登录测试：
+**【仓库最终版】** 使用数据驱动的登录测试 `testcases/test_login.py`：
 
 ```python
-# testcases/test_login_data_driven.py
-# 演示数据驱动
+# testcases/test_login.py
+# 登录接口测试：YAML 数据驱动 + pytest 参数化
 
 import pytest
-import requests
+
+from api.login_api import login
 from utils.data_util import read_yaml
 
-
-# 读取测试数据
-# read_yaml() 返回一个字典，其中包含所有测试数据
+# 从 YAML 读取测试数据
+# 每个 key 是一组用例，字段：username / password / expect_code / expect_message
 login_data = read_yaml("login_data.yaml")
 
-
-def test_login_success():
-    """测试登录成功——直接读取 YAML 中的数据"""
-    
-    # 从读到的数据中取出"登录成功"这组数据
-    case = login_data["login_success"]
-    
-    response = requests.post(
-        "http://localhost:3000/api/login",
-        json={
-            "username": case["username"],
-            "password": case["password"]
-        }
-    )
-    resp_data = response.json()
-    
-    # 期望值也写在 YAML 里了
-    assert resp_data["code"] == case["expect_code"]
-    assert resp_data["message"] == case["expect_message"]
-
-
-# ★ 更高级的用法：用 @pytest.mark.parametrize 实现参数化
-# 一组数据跑一次用例，而不是每个场景写一个函数
-
-# 先准备好参数化数据
-# 列表里的每个元组，都是一组测试数据
+# 把 YAML 字典转成参数化需要的列表：
+# [ (用例名, 用户名, 密码, 期望状态码, 期望消息), ... ]
 parametrize_data = [
-    # (用户名,    密码,        期望状态码, 期望消息)
-    ("admin",     "admin123",  0,          "登录成功"),
-    ("admin",     "wrong",     400,        "用户名或密码错误"),
-    ("",          "admin123",  400,        "用户名不能为空"),
-    ("admin",     "",          400,        "密码不能为空"),
+    (
+        case_name,
+        case["username"],
+        case["password"],
+        case["expect_code"],
+        case["expect_message"],
+    )
+    for case_name, case in login_data.items()
 ]
 
 
-# @pytest.mark.parametrize 是 pytest 的参数化装饰器
-# 格式：(参数名1, 参数名2, ...), [ (值1, 值2), (值1, 值2), ... ]
 # 有多少组数据，这个用例就跑多少遍
 @pytest.mark.parametrize(
-    "username, password, expect_code, expect_message",
-    parametrize_data
+    "case_name, username, password, expect_code, expect_message",
+    parametrize_data,
+    ids=[case[0] for case in parametrize_data],   # 用 YAML 里的用例名作为测试 ID
 )
-def test_login_parametrize(username, password, expect_code, expect_message):
-    """
-    参数化测试登录接口
-    一组数据跑一遍这个函数，总共跑4遍
-    """
-    response = requests.post(
-        "http://localhost:3000/api/login",
-        json={
-            "username": username,
-            "password": password
-        }
-    )
+def test_login(case_name, username, password, expect_code, expect_message):
+    """登录接口参数化测试：一组数据对应一条用例"""
+    response = login(username, password)
     resp_data = response.json()
-    
+
     assert resp_data["code"] == expect_code
     assert resp_data["message"] == expect_message
 ```
 
 > **代码解释——参数化**：
-> - `@pytest.mark.parametrize("变量1, 变量2", [ (值1, 值2), (值1, 值2) ])` → 固定格式
-> - 列表里有几组数据，测试用例就执行几遍
-> - 每次执行时，pytest 自动把一组数据赋给对应的变量
-> - 比如第一遍：`username="admin"`, `password="admin123"`, 然后执行函数体
+> - `read_yaml()` 返回字典：`{"login_success": {...}, "login_wrong_password": {...}, ...}`
+> - 列表推导式把字典转成"一行数据一个元组"，同时保留 `case_name` 作为用例 ID
+> - `ids=[...]` 让报告显示 `test_login[login_wrong_password]`，而不是 `test_login[case1]`
+> - 解析后共 **4 条**用例：`login_success` / `login_wrong_password` / `login_no_username` / `login_no_password`
+> - 和【教学中间版】的硬编码列表相比：加用例只改 YAML，不动代码——这才是"数据驱动"的实际收益
 
 ---
 
@@ -1325,124 +1311,127 @@ def assert_field_equal(response, field_path, expect_value):
 ### 2. 用封装后的断言改写测试用例
 
 ```python
-# testcases/test_tasks_advanced.py
-# 使用封装的断言
+# testcases/test_tasks.py
+# 任务管理接口测试：使用封装的断言，验证正向流程与异常分支
 
 import pytest
-from api.tasks_api import get_tasks, create_task, get_task_detail
-from utils.assert_util import assert_success, assert_field_equal, assert_status_code
-from utils.requests_util import request_util
+
+from api.tasks_api import (
+    batch_delete_tasks,
+    create_task,
+    get_task_detail,
+    get_tasks,
+)
+from utils.assert_util import assert_field_equal, assert_status_code, assert_success
 
 
 @pytest.mark.usefixtures("login_setup")
 class TestTasksAdvanced:
-    
+
     def test_get_tasks(self):
         """用封装的断言来写"""
         response = get_tasks()
-        
-        # 一行断言代替3行
         assert_success(response)
-        
-        # 验证返回数据的结构
+
         resp_data = response.json()
         assert isinstance(resp_data["data"]["list"], list), "list 应该是一个列表"
         assert isinstance(resp_data["data"]["total"], int), "total 应该是一个整数"
-    
+
     def test_create_task_with_assert(self):
         """创建任务并使用字段断言"""
         response = create_task(title="测试断言封装", priority="high")
-        
         assert_success(response)
-        
-        # 用封装的字段断言，一行验证一个字段
+
         assert_field_equal(response, "data.title", "测试断言封装")
         assert_field_equal(response, "data.priority", "high")
         assert_field_equal(response, "data.status", "todo")
-    
+
     def test_task_not_found(self):
         """测试查询不存在的任务"""
         response = get_task_detail(99999)
-        
-        # 期望返回 404
         assert_status_code(response, 404)
+
+    def test_batch_delete_tasks(self):
+        """先创建两个任务，再批量删除它们"""
+        resp_a = create_task(title="待批量删除-A")
+        assert_success(resp_a)
+        task_id_a = resp_a.json()["data"]["id"]
+
+        resp_b = create_task(title="待批量删除-B")
+        assert_success(resp_b)
+        task_id_b = resp_b.json()["data"]["id"]
+
+        resp_delete = batch_delete_tasks([task_id_a, task_id_b])
+        assert_success(resp_delete)
+        assert "成功删除 2 个任务" in resp_delete.json()["message"]
+
+        assert_status_code(get_task_detail(task_id_a), 404)
+        assert_status_code(get_task_detail(task_id_b), 404)
 ```
 
 ### 3. 异常场景测试
 
+**【仓库最终版】** `testcases/test_exception.py`——用例里**不出现接口地址**，全部走工具层/接口层：
+
 ```python
-# testcases/test_exception_scenarios.py
-# 测试异常场景
+# testcases/test_exception.py
+# 异常场景测试：鉴权失败、参数校验失败、服务端错误
 
 import pytest
-import requests
-from utils.assert_util import assert_status_code
+
+from api.error_api import simulate_server_error
+from api.tasks_api import create_task
+from utils.assert_util import assert_error, assert_status_code
+from utils.requests_util import RequestsUtil
 
 
-class TestExceptionScenarios:
-    
+class TestAuthException:
+    """鉴权类异常：使用独立的请求实例，不带 token / 带伪造 token
+
+    注意：全局 request_util 在会话登录后会自动带上真实 token，
+    所以这里单独 new 一个实例，避免用例之间互相影响
+    """
+
     def test_no_token(self):
-        """测试不传 token 访问需要登录的接口"""
-        response = requests.get("http://localhost:3000/api/tasks")
+        """不传 token 访问需要鉴权的接口，应返回 401"""
+        client = RequestsUtil()
+        response = client.get("/api/tasks")
         assert_status_code(response, 401)
-    
+
     def test_fake_token(self):
-        """测试传假的 token"""
-        headers = {"Authorization": "Bearer fake_token_123"}
-        response = requests.get(
-            "http://localhost:3000/api/tasks",
-            headers=headers
-        )
+        """使用伪造的 token，应返回 401"""
+        client = RequestsUtil()
+        client.set_token("fake_token_123")
+        response = client.get("/api/tasks")
         assert_status_code(response, 401)
-    
+
+
+@pytest.mark.usefixtures("login_setup")
+class TestParamException:
+    """参数校验类异常：登录态由 session 级 fixture 提供"""
+
     def test_empty_title_create_task(self):
-        """测试创建任务时标题为空"""
-        # 先登录获取 token
-        login_resp = requests.post(
-            "http://localhost:3000/api/login",
-            json={"username": "admin", "password": "admin123"}
-        )
-        token = login_resp.json()["data"]["token"]
-        
-        headers = {"Authorization": "Bearer " + token}
-        
-        # 传空的 title
-        response = requests.post(
-            "http://localhost:3000/api/tasks",
-            headers=headers,
-            json={"title": ""}
-        )
-        
-        # 期望返回 400
-        assert_status_code(response, 400)
+        """创建任务时标题为空，应返回 400"""
+        response = create_task(title="")
+        assert_error(response, 400)
         assert response.json()["message"] == "任务标题不能为空"
-    
-    def test_server_error(self):
-        """测试服务器500错误"""
-        response = requests.get("http://localhost:3000/api/error/server-error")
-        assert_status_code(response, 500)
-    
+
     def test_long_title(self):
-        """测试标题超过长度限制"""
-        login_resp = requests.post(
-            "http://localhost:3000/api/login",
-            json={"username": "admin", "password": "admin123"}
-        )
-        token = login_resp.json()["data"]["token"]
-        
-        headers = {"Authorization": "Bearer " + token}
-        
-        # 创建51个字符的标题（限制是50）
-        long_title = "a" * 51
-        response = requests.post(
-            "http://localhost:3000/api/tasks",
-            headers=headers,
-            json={"title": long_title}
-        )
-        
-        assert_status_code(response, 400)
+        """标题超过 50 字符限制，应返回 400"""
+        response = create_task(title="a" * 51)
+        assert_error(response, 400)
         assert "50个字符" in response.json()["message"]
+
+    def test_server_error(self):
+        """模拟服务端 500 错误"""
+        response = simulate_server_error()
+        assert_status_code(response, 500)
 ```
+
+> **比【教学中间版】改进的地方**：
+> 1. 不再手写 `requests.post(..., headers=...)`，鉴权头由 `RequestsUtil` 统一管理
+> 2. 鉴权异常和参数异常分成两个类：前者不能用全局 token，后者需要登录态，需求相反，混在一起必然互相影响
+> 3. `simulate_server_error()` 收进 `api/error_api.py`，用例层不拼 URL
 
 ---
 
@@ -1464,27 +1453,47 @@ class TestExceptionScenarios:
 
 ### 完整框架的结构
 
+**【仓库最终版】** 完整结构：
+
 ```
-api-test/
-├── api/                    # 接口层
-│   ├── __init__.py
-│   ├── login_api.py        # 登录接口
-│   └── tasks_api.py        # 任务接口
-├── data/                   # 测试数据
-│   └── login_data.yaml
-├── testcases/              # 测试用例
-│   ├── test_login.py
-│   ├── test_tasks.py
-│   └── test_exception.py
-├── utils/                  # 工具层
-│   ├── __init__.py
-│   ├── requests_util.py    # 请求工具
-│   ├── assert_util.py      # 断言工具
-│   └── data_util.py        # 数据读取工具
-├── conftest.py             # pytest 全局配置（fixture）
-├── pytest.ini              # pytest 配置文件
-└── requirements.txt        # 依赖清单
+api-auto-project/
+├── api-server/                   # 被测系统（Node.js + Express）
+│   ├── server.js                 # API 服务主程序（内存数据 + JWT 鉴权）
+│   └── package.json              # 服务端依赖与 npm start
+├── api-test/                     # 接口自动化测试框架
+│   ├── conftest.py               # pytest 全局 fixture（session 级登录）
+│   ├── pytest.ini                # pytest 配置
+│   ├── utils/                    # 工具层
+│   │   ├── __init__.py
+│   │   ├── requests_util.py      # requests 二次封装（base_url / 超时 / token / 上传）
+│   │   ├── data_util.py          # YAML 测试数据读取
+│   │   └── assert_util.py        # 断言工具
+│   ├── api/                      # 接口层
+│   │   ├── __init__.py
+│   │   ├── login_api.py          # 登录 / 注册
+│   │   ├── tasks_api.py          # 任务增删改查 / 批量删除
+│   │   ├── category_api.py       # 分类查询
+│   │   ├── upload_api.py         # 文件上传
+│   │   └── error_api.py          # 异常场景模拟（超时 / 500）
+│   ├── data/
+│   │   └── login_data.yaml       # 登录用例数据（4 条）
+│   └── testcases/                # 用例层
+│       ├── test_login.py         # 登录（参数化 4 条）
+│       ├── test_tasks.py         # 任务管理（4 条）
+│       ├── test_category.py      # 分类查询（1 条）
+│       ├── test_upload.py        # 文件上传（1 条）
+│       ├── test_exception.py     # 鉴权与参数校验异常（5 条）
+│       ├── test_timeout.py       # 接口超时（1 条）
+│       └── test_allure_demo.py   # Allure 报告演示（3 条）
+├── requirements.txt              # 依赖清单（在项目根目录）
+├── README.md
+├── 项目解释文档.md
+└── api-auto-learning-guide.md    # 本文档
 ```
+
+**用例总数：19 条** = 16 个测试函数 + 登录模块参数化展开 4 条（其余 15 个函数各 1 条）。实测 `19 passed in 10.33s`。
+
+> 注意 `test_timeout.py` 的用时：它故意让服务端延迟 15 秒（工具层 timeout=10 秒），所以跑全量时这 1 条就要占约 10 秒，属于预期行为。
 
 ### Allure 报告
 
@@ -1611,7 +1620,7 @@ class TestTasksAllure:
 ### 4. 运行并生成 Allure 报告
 
 ```bash
-cd C:\Users\xiaow\api-auto-project\api-test
+cd C:\Users\xiaow\Desktop\软件测试项目\接口自动化\api-auto-project\api-test
 
 # 第一步：运行测试，生成 Allure 数据（存到 allure-results 文件夹）
 python -m pytest testcases/test_allure_demo.py --alluredir=allure-results
@@ -1622,7 +1631,7 @@ allure serve allure-results
 
 `allure serve` 命令会自动启动一个 Web 服务器，在浏览器中打开漂亮的报告页面。
 
-### 5. 把常用命令做成脚本
+### 5. 把常用命令做成脚本（可选练习，仓库里没有这个文件）
 
 创建 `run.bat`（Windows 批处理文件）：
 
@@ -1647,6 +1656,93 @@ pause
 ```
 
 双击 `run.bat` 就能一键运行全部测试并查看报告。
+
+### 6. 仓库里的另外三个模块（上传 / 分类 / 超时）
+
+除了上面按天讲解的主线，最终仓库还补齐了三类"框架能力"用例，代码都很短，建议对照看一遍：
+
+```python
+# api/upload_api.py —— 文件上传
+from utils.requests_util import request_util
+
+def upload_file(file_path):
+    """file_path: 本地文件路径"""
+    with open(file_path, "rb") as f:
+        files = {"file": f}
+        response = request_util.upload("/api/upload", files=files)
+    return response
+```
+
+```python
+# testcases/test_upload.py —— 用 tmp_path 造临时文件，跑完自动清理
+import pytest
+from api.upload_api import upload_file
+from utils.assert_util import assert_success
+
+
+class TestUpload:
+
+    @pytest.mark.usefixtures("login_setup")
+    def test_upload_file(self, tmp_path):
+        """上传一个文本文件"""
+        file_path = tmp_path / "test_upload.txt"
+        file_path.write_text("这是测试上传的文件内容", encoding="utf-8")
+
+        response = upload_file(str(file_path))
+        assert_success(response)
+
+        resp_data = response.json()["data"]
+        assert resp_data["originalname"] == "test_upload.txt"
+        assert resp_data["size"] > 0
+        assert "/uploads/" in resp_data["url"]
+```
+
+```python
+# api/category_api.py —— 分类查询（不需要登录）
+from utils.requests_util import request_util
+
+def get_categories():
+    response = request_util.get("/api/categories")
+    return response
+
+
+# testcases/test_category.py
+from utils.assert_util import assert_success
+
+class TestCategory:
+
+    def test_get_categories(self):
+        response = get_categories()
+        assert_success(response)
+        assert len(response.json()["data"]) > 0
+```
+
+```python
+# api/error_api.py —— 超时 / 500 两个异常接口
+from utils.requests_util import request_util
+
+def simulate_timeout(delay=15):
+    """delay 需大于工具层 timeout=10，才会触发超时"""
+    return request_util.post("/api/error/timeout", json={"delay": delay})
+
+def simulate_server_error():
+    return request_util.get("/api/error/server-error")
+
+
+# testcases/test_timeout.py —— 断言"抛出 Timeout 异常"而不是断言返回值
+import pytest
+import requests
+
+from api.error_api import simulate_timeout
+
+class TestTimeout:
+    @pytest.mark.usefixtures("login_setup")
+    def test_timeout(self):
+        with pytest.raises(requests.exceptions.Timeout):
+            simulate_timeout(delay=15)
+```
+
+> 这三个模块对应面试里的三类问题：**文件上传**（multipart 边界、`tmp_path` 数据隔离）、**公开接口 vs 鉴权接口**、**超时异常**（`pytest.raises` 断言异常，而不是断言状态码）。
 
 ---
 
